@@ -60,3 +60,204 @@
 [Article 1](https://www.explainthatstuff.com/induction-motors.html)
 
 [Link title](https://projecthub.arduino.cc/)
+
+
+COD:
+// LEDS
+const byte RED_LED   = 12;
+const byte GREEN_LED = 11;
+const byte BLUE_LED  = 10;
+// BUTTONS
+const byte RED_BTN   = A1;
+const byte GREEN_BTN = A2;
+const byte BLUE_BTN  = A3;
+// BUZZER
+const byte BUZZER = 9;
+
+const int MAX_SEQ = 50;
+
+byte sequence[MAX_SEQ];
+int seqLength = 2;
+
+void setup() {
+
+  pinMode(RED_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(BLUE_LED, OUTPUT);
+
+  pinMode(RED_BTN, INPUT_PULLUP);
+  pinMode(GREEN_BTN, INPUT_PULLUP);
+  pinMode(BLUE_BTN, INPUT_PULLUP);
+
+  pinMode(BUZZER, OUTPUT);
+
+  randomSeed(analogRead(A1));
+
+  newGame();
+}
+
+void loop() {
+
+  showSequence();
+
+  if (!repeatSequence(seqLength)) {
+    gameOver();
+    newGame();
+    return;
+  }
+
+  successAnimation();
+
+  // utilizatorul trebuie sa repete din nou
+  // secventa si sa adauge o culoare
+
+  if (!repeatSequence(seqLength)) {
+    gameOver();
+    newGame();
+    return;
+  }
+
+  byte newColor = getButton();
+
+  sequence[seqLength] = newColor;
+  seqLength++;
+
+  flashColor(newColor);
+
+  successAnimation();
+
+  delay(1000);
+}
+
+void newGame() {
+
+  seqLength = 2;
+
+  sequence[0] = random(3);
+  sequence[1] = random(3);
+
+  allOff();
+}
+
+bool repeatSequence(int length) {
+
+  for (int i = 0; i < length; i++) {
+
+    byte pressed = getButton();
+
+    flashColor(pressed);
+
+    if (pressed != sequence[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+byte getButton() {
+
+  while (true) {
+
+    if (digitalRead(RED_BTN) == LOW) {
+      delay(30);
+      while (digitalRead(RED_BTN) == LOW);
+      delay(30);
+      return 0;
+    }
+
+    if (digitalRead(GREEN_BTN) == LOW) {
+      delay(30);
+      while (digitalRead(GREEN_BTN) == LOW);
+      delay(30);
+      return 1;
+    }
+
+    if (digitalRead(BLUE_BTN) == LOW) {
+      delay(30);
+      while (digitalRead(BLUE_BTN) == LOW);
+      delay(30);
+      return 2;
+    }
+  }
+}
+
+void showSequence() {
+
+  delay(500);
+
+  for (int i = 0; i < seqLength; i++) {
+
+    flashColor(sequence[i]);
+
+    delay(200);
+  }
+}
+
+void flashColor(byte color) {
+
+  allOff();
+
+  switch (color) {
+
+    case 0:
+      digitalWrite(RED_LED, HIGH);
+      tone(BUZZER, 440);
+      break;
+
+    case 1:
+      digitalWrite(GREEN_LED, HIGH);
+      tone(BUZZER, 660);
+      break;
+
+    case 2:
+      digitalWrite(BLUE_LED, HIGH);
+      tone(BUZZER, 880);
+      break;
+  }
+
+  delay(350);
+
+  allOff();
+  noTone(BUZZER);
+}
+
+void successAnimation() {
+
+  digitalWrite(RED_LED, HIGH);
+  digitalWrite(GREEN_LED, HIGH);
+  digitalWrite(BLUE_LED, HIGH);
+
+  tone(BUZZER, 1200);
+
+  delay(250);
+
+  allOff();
+  noTone(BUZZER);
+}
+
+void gameOver() {
+
+  for (int i = 0; i < 5; i++) {
+
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(GREEN_LED, HIGH);
+    digitalWrite(BLUE_LED, HIGH);
+
+    tone(BUZZER, 180);
+
+    delay(200);
+
+    allOff();
+    noTone(BUZZER);
+
+    delay(200);
+  }
+}
+
+void allOff() {
+
+  digitalWrite(RED_LED, LOW);
+  digitalWrite(GREEN_LED, LOW);
+  digitalWrite(BLUE_LED, LOW);
+}
